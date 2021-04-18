@@ -5,44 +5,48 @@ const twitterBtn = document.querySelector('#twitter-button');
 const newQuoteBtn = document.querySelector('#new-quote-button');
 const loader = document.querySelector('#loader');
 
+let apiQuotes = [];
+
 const showLoadingSpinner = () => {
 	loader.hidden = false;
 	quoteContainer.hidden = true;
 };
 
 const removeLoadingSpinner = () => {
-	if (!loader.hidden) {
-		loader.hidden = true;
-		quoteContainer.hidden = false;
-	}
+    loader.hidden = true;
+    quoteContainer.hidden = false;
 }
 
 const getQuoteFromAPI = async () => {
     showLoadingSpinner();
 
-    // To avoid CORS issues
-    const proxyUrl = 'https://agile-lowlands-13303.herokuapp.com/';
-
-    const apiUrl = 'http://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en';
+    const apiUrl = 'https://type.fit/api/quotes';
 
     try {
-        const response = await fetch(proxyUrl + apiUrl);
-        const data = await response.json();
+        const response = await fetch(apiUrl);
+        apiQuotes = await response.json();
 
-        (data.quoteText.length > 120) ? quoteText.classList.add('long-quote') : quoteText.classList.remove('long-quote');
-        quoteText.innerText = data.quoteText;
-
-        (data.quoteAuthor === '') ? authorName.innerText = 'Unknown' : authorName.innerText = data.quoteAuthor;
-        
-        removeLoadingSpinner();
+        newQuote();
     } catch (error) {
         getQuoteFromAPI();
     }
 }
 
+const newQuote = () => {
+    showLoadingSpinner();
+
+    const quote = apiQuotes[Math.floor(Math.random() * apiQuotes.length)];
+    
+    (quote.text.length > 120) ? quoteText.classList.add('long-quote') : quoteText.classList.remove('long-quote');
+    quoteText.textContent = quote.text;
+    (!quote.author) ? authorName.textContent = 'Unknown' : authorName.textContent = quote.author;
+
+    removeLoadingSpinner();
+}
+
 const tweetQuote = () => {
-    const quoteToTweet = quoteText.innerText;
-    const authorToTweet = authorName.innerText;
+    const quoteToTweet = quoteText.textContent;
+    const authorToTweet = authorName.textContent;
 
     const twitterUrl = `https://twitter.com/intent/tweet?text=${quoteToTweet} - ${authorToTweet}`;
     open(twitterUrl, '_blank');
